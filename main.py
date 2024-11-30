@@ -3,20 +3,15 @@ import random
 import speech_recognition
 
 from function_voice import *
-#from function_base import *
+from function_base import *
 from Music import *
 
+with open('commands.json', 'r', encoding='utf-8') as file:
+    command_dict = json.load(file)
 
 sr = speech_recognition.Recognizer()
 sr.pause_threshold = 0.5
 
-commands_dict = {
-    'commands': {
-        'greeting': ['привет', 'приветствую'],
-        'create_task': ['добавить задачу', 'создать задачу', 'заметка'],
-        'play_music': ['включить музыку', 'дискотека']
-    }
-}
 
 
 def listen_command():
@@ -34,10 +29,45 @@ def listen_command():
 def greeting():
     return 'Привет нищеброд!'
 
+def wake_up():
+    print('я')
+    print("слушаю вас")
+    music = Music()
+    command = listen_command()
+    # Регулярные выражения для команды "открой"
+    open_match = re.match(r"открой\s+(.+)", command)
+    video_match = re.match(r"(найди видео|запусти видео)\s+(.+)", command)
+    timer_match = re.match(r"поставь таймер\s+(.+)", command)
+
+    if open_match:
+        # Захватываем часть команды после "открой"
+        site_name = open_match.group(1).strip()  # Получаем всё после "открой"
+        url = f"https://www.google.com/search?q={site_name}"
+        webbrowser.open(url)
+        return f"вот что я нашла по запросу '{site_name}'"
+
+    elif video_match:
+        # Захватываем часть команды после "найди видео" или "запусти видео"
+        video_name = video_match.group(2).strip()  # Получаем всё после команды
+        url = f"https://www.youtube.com/search?q={video_name}"
+        webbrowser.open(url)
+        return f"вот что я нашла для видео '{video_name}'"
+
+    elif timer_match:
+        # Захватываем часть команды после "поставь таймер"
+        timer_text = timer_match.group(1).strip()  # Получаем всё после "поставь таймер"
+        timer_seconds = w2n.word_to_num(timer_text)  # Преобразуем слова в числа
+        taimer(timer_seconds)
+    elif command in music.commands:
+        music.execute_commands(command)
+    else:
+        print(random.choice(command_dict['commands']['not_understand']))
+        wake_up()
+
 def main():
     query = listen_command()
 
-    for k, v in commands_dict['commands'].items():
+    for k, v in command_dict['commands'].items():
         if query in v:
             print(globals()[k]())
 

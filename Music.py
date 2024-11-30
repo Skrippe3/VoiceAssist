@@ -1,4 +1,4 @@
-from Moduls import *
+from moduls import *
 from main import *
 
 
